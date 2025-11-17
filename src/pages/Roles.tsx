@@ -42,15 +42,74 @@ interface Rol {
   permisos: string[];
 }
 
-const permisosDisponibles = [
-  { id: "gestionar_kioskos", label: "Gestionar kioskos" },
-  { id: "ver_reportes", label: "Ver reportes" },
-  { id: "crear_usuarios", label: "Crear usuarios" },
-  { id: "editar_usuarios", label: "Editar usuarios" },
-  { id: "gestionar_roles", label: "Gestionar roles" },
-  { id: "gestionar_publicidad", label: "Gestionar publicidad" },
-  { id: "gestionar_pantallas", label: "Gestionar pantallas" },
-] as const;
+interface Permiso {
+  id: string;
+  label: string;
+}
+
+interface Categoria {
+  nombre: string;
+  permisos: Permiso[];
+}
+
+const categorias: Categoria[] = [
+  {
+    nombre: "Usuarios",
+    permisos: [
+      { id: "usuarios_crear", label: "Crear" },
+      { id: "usuarios_editar", label: "Editar" },
+      { id: "usuarios_eliminar", label: "Eliminar" },
+    ],
+  },
+  {
+    nombre: "Roles",
+    permisos: [
+      { id: "roles_crear", label: "Crear" },
+      { id: "roles_editar", label: "Editar" },
+      { id: "roles_eliminar", label: "Eliminar" },
+    ],
+  },
+  {
+    nombre: "Sucursales",
+    permisos: [
+      { id: "sucursales_crear", label: "Crear" },
+      { id: "sucursales_editar", label: "Editar" },
+      { id: "sucursales_eliminar", label: "Eliminar" },
+    ],
+  },
+  {
+    nombre: "Kioskos",
+    permisos: [
+      { id: "kioskos_crear", label: "Crear" },
+      { id: "kioskos_editar", label: "Editar" },
+      { id: "kioskos_eliminar", label: "Eliminar" },
+    ],
+  },
+  {
+    nombre: "Pantallas",
+    permisos: [
+      { id: "pantallas_crear", label: "Crear" },
+      { id: "pantallas_editar", label: "Editar" },
+      { id: "pantallas_eliminar", label: "Eliminar" },
+    ],
+  },
+  {
+    nombre: "Publicidad",
+    permisos: [
+      { id: "publicidad_crear", label: "Crear" },
+      { id: "publicidad_editar", label: "Editar" },
+      { id: "publicidad_eliminar", label: "Eliminar" },
+    ],
+  },
+  {
+    nombre: "Reportes",
+    permisos: [
+      { id: "reportes_generar", label: "Generar" },
+    ],
+  },
+];
+
+const permisosDisponibles = categorias.flatMap(cat => cat.permisos);
 
 const schema = z.object({
   nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -62,8 +121,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 const inicial: Rol[] = [
-  { id: 1, nombre: "Técnico", permisos: ["gestionar_kioskos", "gestionar_pantallas"] },
-  { id: 2, nombre: "Gerente", permisos: ["ver_reportes"] },
+  { id: 1, nombre: "Técnico", permisos: ["kioskos_crear", "kioskos_editar", "pantallas_crear", "pantallas_editar"] },
+  { id: 2, nombre: "Gerente", permisos: ["reportes_generar"] },
   { id: 3, nombre: "Administrador", permisos: permisosDisponibles.map(p => p.id) },
 ];
 
@@ -180,24 +239,31 @@ export default function Roles() {
                   name="permisos"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Permisos</FormLabel>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {permisosDisponibles.map((perm) => {
-                          const checked = field.value?.includes(perm.id);
-                          return (
-                            <label key={perm.id} className="flex items-center gap-2">
-                              <Checkbox
-                                checked={checked}
-                                onCheckedChange={(v) => {
-                                  const isChecked = Boolean(v);
-                                  if (isChecked) field.onChange([...(field.value ?? []), perm.id]);
-                                  else field.onChange((field.value ?? []).filter((p: string) => p !== perm.id));
-                                }}
-                              />
-                              <span>{perm.label}</span>
-                            </label>
-                          );
-                        })}
+                      <FormLabel>Permisos por Categoría</FormLabel>
+                      <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                        {categorias.map((categoria) => (
+                          <div key={categoria.nombre} className="border rounded-lg p-4 space-y-3">
+                            <h4 className="font-medium text-sm">{categoria.nombre}</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {categoria.permisos.map((perm) => {
+                                const checked = field.value?.includes(perm.id);
+                                return (
+                                  <label key={perm.id} className="flex items-center gap-2 cursor-pointer">
+                                    <Checkbox
+                                      checked={checked}
+                                      onCheckedChange={(v) => {
+                                        const isChecked = Boolean(v);
+                                        if (isChecked) field.onChange([...(field.value ?? []), perm.id]);
+                                        else field.onChange((field.value ?? []).filter((p: string) => p !== perm.id));
+                                      }}
+                                    />
+                                    <span className="text-sm">{perm.label}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                       <FormMessage />
                     </FormItem>
