@@ -46,14 +46,36 @@ import { Pencil, Plus } from "lucide-react";
 // Tipos
 interface Usuario {
   id: number;
+  codigo: string;
   nombre: string;
   correo: string;
+  telefono: string;
+  cedula: string;
   rol: string;
   sucursal: string;
+  region: string;
+  provincia: string;
+  ciudad: string;
 }
 
 const sucursales = ["Sucursal Centro", "Sucursal Norte", "Sucursal Sur"];
 const rolesPosibles = ["Técnico", "Gerente", "Administrador"];
+
+const regiones = {
+  costa: ["Esmeraldas", "Manabí", "Los Ríos", "Guayas", "Santa Elena", "El Oro"],
+  sierra: ["Carchi", "Imbabura", "Pichincha", "Cotopaxi", "Tungurahua", "Bolívar", "Chimborazo", "Cañar", "Azuay", "Loja"],
+  amazonia: ["Sucumbíos", "Napo", "Orellana", "Pastaza", "Morona Santiago", "Zamora Chinchipe"],
+  galapagos: ["Galápagos"]
+};
+
+const ciudadesPorProvincia: Record<string, string[]> = {
+  "Pichincha": ["Quito", "Cayambe", "Mejía", "Pedro Moncayo", "Rumiñahui"],
+  "Guayas": ["Guayaquil", "Durán", "Samborondón", "Daule", "Milagro"],
+  "Azuay": ["Cuenca", "Gualaceo", "Paute", "Chordeleg", "Sigsig"],
+  "Manabí": ["Portoviejo", "Manta", "Chone", "Jipijapa"],
+  "Esmeraldas": ["Esmeraldas", "Atacames", "Quinindé"],
+  "El Oro": ["Machala", "Pasaje", "Santa Rosa", "Huaquillas"],
+};
 
 // Esquema de validación
 const schema = z.object({
@@ -63,8 +85,20 @@ const schema = z.object({
   correo: z
     .string()
     .email("Ingresa un correo válido"),
+  telefono: z
+    .string()
+    .min(10, "El teléfono debe tener al menos 10 dígitos")
+    .regex(/^[0-9+\-\s()]+$/, "Formato de teléfono inválido"),
+  cedula: z
+    .string()
+    .min(10, "La cédula debe tener 10 dígitos")
+    .max(10, "La cédula debe tener 10 dígitos")
+    .regex(/^[0-9]+$/, "La cédula solo debe contener números"),
   rol: z.string().min(1, "El rol es obligatorio"),
   sucursal: z.string().min(1, "La sucursal es obligatoria"),
+  region: z.string().min(1, "La región es obligatoria"),
+  provincia: z.string().min(1, "La provincia es obligatoria"),
+  ciudad: z.string().min(1, "La ciudad es obligatoria"),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -72,24 +106,42 @@ type FormValues = z.infer<typeof schema>;
 const initialData: Usuario[] = [
   {
     id: 1,
-    nombre: "María Gómez",
-    correo: "maria.gomez@empresa.com",
-    rol: "Gerente",
+    codigo: "0000",
+    nombre: "Administrador",
+    correo: "admin@empresa.com",
+    telefono: "0999999999",
+    cedula: "1234567890",
+    rol: "Administrador",
     sucursal: "Sucursal Centro",
+    region: "sierra",
+    provincia: "Pichincha",
+    ciudad: "Quito",
   },
   {
     id: 2,
-    nombre: "Juan Pérez",
-    correo: "juan.perez@empresa.com",
-    rol: "Técnico",
-    sucursal: "Sucursal Norte",
+    codigo: "0001",
+    nombre: "María Gómez",
+    correo: "maria.gomez@empresa.com",
+    telefono: "0987654321",
+    cedula: "0987654321",
+    rol: "Gerente",
+    sucursal: "Sucursal Centro",
+    region: "sierra",
+    provincia: "Pichincha",
+    ciudad: "Quito",
   },
   {
     id: 3,
-    nombre: "Ana López",
-    correo: "ana.lopez@empresa.com",
-    rol: "Administrador",
-    sucursal: "Sucursal Sur",
+    codigo: "0002",
+    nombre: "Juan Pérez",
+    correo: "juan.perez@empresa.com",
+    telefono: "0912345678",
+    cedula: "1122334455",
+    rol: "Técnico",
+    sucursal: "Sucursal Norte",
+    region: "costa",
+    provincia: "Guayas",
+    ciudad: "Guayaquil",
   },
 ];
 
@@ -125,30 +177,57 @@ export default function Usuarios() {
     link.setAttribute("href", `${window.location.origin}/usuarios`);
   }, []);
 
+  const [regionSeleccionada, setRegionSeleccionada] = useState("");
+  const [provinciaSeleccionada, setProvinciaSeleccionada] = useState("");
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       nombre: "",
       correo: "",
+      telefono: "",
+      cedula: "",
       rol: "",
       sucursal: "",
+      region: "",
+      provincia: "",
+      ciudad: "",
     },
     mode: "onBlur",
   });
 
   const onNueva = () => {
     setEditando(null);
-    form.reset({ nombre: "", correo: "", rol: "", sucursal: "" });
+    setRegionSeleccionada("");
+    setProvinciaSeleccionada("");
+    form.reset({ 
+      nombre: "", 
+      correo: "", 
+      telefono: "",
+      cedula: "",
+      rol: "", 
+      sucursal: "",
+      region: "",
+      provincia: "",
+      ciudad: "",
+    });
     setOpen(true);
   };
 
   const onEditar = (u: Usuario) => {
     setEditando(u);
+    setRegionSeleccionada(u.region);
+    setProvinciaSeleccionada(u.provincia);
     form.reset({
       nombre: u.nombre,
       correo: u.correo,
+      telefono: u.telefono,
+      cedula: u.cedula,
       rol: u.rol,
       sucursal: u.sucursal,
+      region: u.region,
+      provincia: u.provincia,
+      ciudad: u.ciudad,
     });
     setOpen(true);
   };
@@ -182,12 +261,22 @@ export default function Usuarios() {
       toast({ title: "Usuario actualizado", description: `${values.nombre} fue editado.` });
     } else {
       const nuevoId = Math.max(0, ...usuarios.map((u) => u.id)) + 1;
+      // Generar código incremental
+      const maxCodigo = Math.max(0, ...usuarios.map((u) => parseInt(u.codigo)));
+      const nuevoCodigo = String(maxCodigo + 1).padStart(4, "0");
+      
       const nuevo: Usuario = {
         id: nuevoId,
+        codigo: nuevoCodigo,
         nombre: values.nombre,
         correo: values.correo,
+        telefono: values.telefono,
+        cedula: values.cedula,
         rol: values.rol,
         sucursal: values.sucursal,
+        region: values.region,
+        provincia: values.provincia,
+        ciudad: values.ciudad,
       };
       setUsuarios((prev) => [nuevo, ...prev]);
       toast({ title: "Usuario creado", description: `${values.nombre} fue agregado.` });
@@ -223,23 +312,9 @@ export default function Usuarios() {
                   name="nombre"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nombre</FormLabel>
+                      <FormLabel>Nombre completo</FormLabel>
                       <FormControl>
                         <Input placeholder="Nombre completo" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="correo"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Correo</FormLabel>
-                      <FormControl>
-                        <Input placeholder="correo@empresa.com" type="email" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -249,12 +324,153 @@ export default function Usuarios() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
                     control={form.control}
+                    name="correo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Correo</FormLabel>
+                        <FormControl>
+                          <Input placeholder="correo@empresa.com" type="email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="telefono"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Número de teléfono</FormLabel>
+                        <FormControl>
+                          <Input placeholder="0999999999" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="cedula"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cédula</FormLabel>
+                      <FormControl>
+                        <Input placeholder="1234567890" maxLength={10} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <FormField
+                    control={form.control}
+                    name="region"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Región</FormLabel>
+                        <FormControl>
+                          <Select 
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              setRegionSeleccionada(value);
+                              form.setValue("provincia", "");
+                              form.setValue("ciudad", "");
+                              setProvinciaSeleccionada("");
+                            }} 
+                            value={field.value}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona región" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="costa">Costa</SelectItem>
+                              <SelectItem value="sierra">Sierra</SelectItem>
+                              <SelectItem value="amazonia">Amazonía</SelectItem>
+                              <SelectItem value="galapagos">Galápagos</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="provincia"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Provincia</FormLabel>
+                        <FormControl>
+                          <Select 
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              setProvinciaSeleccionada(value);
+                              form.setValue("ciudad", "");
+                            }} 
+                            value={field.value}
+                            disabled={!regionSeleccionada}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona provincia" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {regionSeleccionada && regiones[regionSeleccionada as keyof typeof regiones]?.map((p) => (
+                                <SelectItem key={p} value={p}>
+                                  {p}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="ciudad"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ciudad</FormLabel>
+                        <FormControl>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            value={field.value}
+                            disabled={!provinciaSeleccionada}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona ciudad" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {provinciaSeleccionada && ciudadesPorProvincia[provinciaSeleccionada]?.map((c) => (
+                                <SelectItem key={c} value={c}>
+                                  {c}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
                     name="rol"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Rol</FormLabel>
                         <FormControl>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger>
                               <SelectValue placeholder="Selecciona un rol" />
                             </SelectTrigger>
@@ -279,7 +495,7 @@ export default function Usuarios() {
                       <FormItem>
                         <FormLabel>Sucursal</FormLabel>
                         <FormControl>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger>
                               <SelectValue placeholder="Selecciona una sucursal" />
                             </SelectTrigger>
@@ -312,20 +528,28 @@ export default function Usuarios() {
           <TableCaption>Listado de usuarios administrativos</TableCaption>
           <TableHeader>
             <TableRow>
+              <TableHead>Código</TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Correo</TableHead>
+              <TableHead>Teléfono</TableHead>
+              <TableHead>Cédula</TableHead>
               <TableHead>Rol</TableHead>
               <TableHead>Sucursal</TableHead>
+              <TableHead>Ciudad</TableHead>
               <TableHead className="w-[120px]">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {usuarios.map((u) => (
               <TableRow key={u.id}>
+                <TableCell className="font-mono">{u.codigo}</TableCell>
                 <TableCell>{u.nombre}</TableCell>
                 <TableCell>{u.correo}</TableCell>
+                <TableCell>{u.telefono}</TableCell>
+                <TableCell>{u.cedula}</TableCell>
                 <TableCell>{u.rol}</TableCell>
                 <TableCell>{u.sucursal}</TableCell>
+                <TableCell>{u.ciudad}</TableCell>
                 <TableCell>
                   <Button variant="outline" size="sm" onClick={() => onEditar(u)}>
                     <Pencil className="mr-2 h-4 w-4" /> Editar

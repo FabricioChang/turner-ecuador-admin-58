@@ -21,7 +21,13 @@ interface Kiosko {
 
 const NuevaSucursal = () => {
   const navigate = useNavigate();
+  
+  // Generar identificador incremental automático
+  const sucursalesExistentes = [1, 2, 3, 4, 5]; // Simulación - en producción vendría de la base de datos
+  const nuevoIdentificador = String(Math.max(...sucursalesExistentes, 0) + 1).padStart(4, "0");
+  
   const [formData, setFormData] = useState({
+    identificador: `SUC-${nuevoIdentificador}`,
     nombre: "",
     descripcion: "",
     direccion: "",
@@ -188,6 +194,17 @@ const NuevaSucursal = () => {
             <CardTitle className="text-admin-text-primary">Información Básica</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="identificador">Identificador</Label>
+              <Input
+                id="identificador"
+                value={formData.identificador}
+                disabled
+                className="bg-muted"
+              />
+              <p className="text-xs text-muted-foreground">Este código se genera automáticamente</p>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="nombre">Nombre de la Sucursal *</Label>

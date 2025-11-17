@@ -26,6 +26,11 @@ const RegistrarPantalla = () => {
     document.title = "Agregar Pantalla | Panel Admin";
   }, []);
 
+  // Generar identificador incremental automático
+  const pantallasExistentes = [9001, 9002]; // Simulación - en producción vendría de la base de datos
+  const nuevoIdentificador = String(Math.max(...pantallasExistentes, 0) + 1);
+  const [identificador] = useState(`PAN-${nuevoIdentificador}`);
+
   const sucursales: SucursalOption[] = useMemo(
     () => [
       { id: 1, nombre: "Sucursal Centro" },
@@ -73,6 +78,7 @@ const RegistrarPantalla = () => {
     const suc = sucursales.find((s) => String(s.id) === sucursalId)!;
     const payload = {
       id: Date.now(),
+      identificador,
       nombre,
       sucursalId: suc.id,
       sucursalNombre: suc.nombre,
@@ -93,6 +99,12 @@ const RegistrarPantalla = () => {
       </header>
 
       <form onSubmit={onSubmit} className="max-w-2xl space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="identificador">Identificador</Label>
+          <Input id="identificador" value={identificador} disabled className="bg-muted" />
+          <p className="text-xs text-muted-foreground">Este código se genera automáticamente</p>
+        </div>
+
         <div className="space-y-2">
           <Label htmlFor="nombre">Nombre de la pantalla</Label>
           <Input id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. Pantalla Recepción" />
