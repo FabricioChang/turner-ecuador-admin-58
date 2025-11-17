@@ -22,6 +22,7 @@ interface PublicidadItem {
 
 interface Pantalla {
   id: number;
+  identificador: string;
   nombre: string;
   sucursalId: number | null;
   sucursalNombre: string;
@@ -60,8 +61,8 @@ const Pantallas = () => {
   );
 
   const [pantallas, setPantallas] = useState<Pantalla[]>([
-    { id: 9001, nombre: "Pantalla Recepción", sucursalId: 1, sucursalNombre: "Sucursal Centro", publicidadIds: [101, 103] },
-    { id: 9002, nombre: "Pantalla Sala", sucursalId: 2, sucursalNombre: "Sucursal Norte", publicidadIds: [102] },
+    { id: 9001, identificador: "PAN-9001", nombre: "Pantalla Recepción", sucursalId: 1, sucursalNombre: "Sucursal Centro", publicidadIds: [101, 103] },
+    { id: 9002, identificador: "PAN-9002", nombre: "Pantalla Sala", sucursalId: 2, sucursalNombre: "Sucursal Norte", publicidadIds: [102] },
   ]);
 
   // Si venimos de "/pantallas/nueva" con una pantalla recién creada, agregarla
@@ -118,6 +119,7 @@ const Pantallas = () => {
         <TableCaption className="text-admin-text-secondary">Administración de pantallas y su contenido publicitario.</TableCaption>
         <TableHeader>
           <TableRow>
+            <TableHead>Identificador</TableHead>
             <TableHead>Nombre</TableHead>
             <TableHead>Sucursal</TableHead>
             <TableHead>Publicidad</TableHead>
@@ -127,6 +129,7 @@ const Pantallas = () => {
         <TableBody>
           {pantallas.map((p) => (
             <TableRow key={p.id}>
+              <TableCell className="font-mono text-admin-text-secondary">{p.identificador}</TableCell>
               <TableCell className="font-medium text-admin-text-primary">{p.nombre}</TableCell>
               <TableCell>
                 <Select

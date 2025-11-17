@@ -31,6 +31,7 @@ const Sucursales = () => {
   const sucursales = [
     {
       id: 1,
+      identificador: "SUC-0001",
       nombre: "Sucursal Centro",
       direccion: "Av. 10 de Agosto 123, Quito",
       estado: "Activa",
@@ -42,6 +43,7 @@ const Sucursales = () => {
     },
     {
       id: 2,
+      identificador: "SUC-0002",
       nombre: "Sucursal Norte",
       direccion: "Av. Eloy Alfaro 456, Quito",
       estado: "Activa",
@@ -53,6 +55,7 @@ const Sucursales = () => {
     },
     {
       id: 3,
+      identificador: "SUC-0003",
       nombre: "Sucursal Sur",
       direccion: "Av. Maldonado 789, Quito",
       estado: "Mantenimiento",
@@ -64,6 +67,7 @@ const Sucursales = () => {
     },
     {
       id: 4,
+      identificador: "SUC-0004",
       nombre: "Sucursal Guayaquil Centro",
       direccion: "Av. 9 de Octubre 100, Guayaquil",
       estado: "Activa",
@@ -75,6 +79,7 @@ const Sucursales = () => {
     },
     {
       id: 5,
+      identificador: "SUC-0005",
       nombre: "Sucursal Cuenca",
       direccion: "Calle Bolívar 200, Cuenca",
       estado: "Inactiva",
@@ -273,18 +278,21 @@ const Sucursales = () => {
         {filteredSucursales.map((sucursal) => (
           <Card key={sucursal.id} className="bg-admin-surface border-admin-border-light">
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="text-admin-text-primary">{sucursal.nombre}</span>
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  sucursal.estado === 'Activa' 
-                    ? 'bg-green-100 text-green-800' 
-                    : sucursal.estado === 'Mantenimiento'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {sucursal.estado}
-                </span>
-              </CardTitle>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-admin-text-primary font-semibold">{sucursal.nombre}</span>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    sucursal.estado === 'Activa' 
+                      ? 'bg-green-100 text-green-800' 
+                      : sucursal.estado === 'Mantenimiento'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {sucursal.estado}
+                  </span>
+                </div>
+                <p className="text-xs text-admin-text-muted font-mono">{sucursal.identificador}</p>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-start space-x-2">
